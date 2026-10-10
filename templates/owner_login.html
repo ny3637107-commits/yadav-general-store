@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owner Portal Login | Yadav General Store</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+</head>
+<body class="owner-body" style="display:flex; align-items:center; justify-content:center; min-height:100vh; padding:1rem;">
+
+  <div style="background:white; max-width:420px; width:100%; padding:2rem; border-radius:12px; border:1px solid #cbd5e1; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+    <div style="text-align:center; margin-bottom:1.5rem;">
+      <span style="font-size:2.5rem;">🏪</span>
+      <h2 style="font-weight:800; color:#0f172a; margin-top:0.5rem;">Owner Control Portal</h2>
+      <p style="font-size:0.85rem; color:#64748b;">Yadav General Store Management System</p>
+    </div>
+
+    <form onsubmit="handleOwnerLogin(event)">
+      <div class="form-group">
+        <label class="form-label">Owner Username</label>
+        <input type="text" id="owner-username" class="form-input" required placeholder="owner" autofocus />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Security Password</label>
+        <input type="password" id="owner-password" class="form-input" required placeholder="••••••••" />
+      </div>
+
+      <div id="login-error-msg" style="display:none; color:#dc2626; background:#fee2e2; padding:0.6rem; border-radius:6px; font-size:0.85rem; margin-bottom:1rem;"></div>
+
+      <button type="submit" id="owner-login-btn" class="submit-order-btn" style="background:#0284c7;">
+        🔐 Authenticate as Store Owner
+      </button>
+    </form>
+
+    <div style="margin-top:1.5rem; text-align:center; border-top:1px solid #f1f5f9; padding-top:1rem;">
+      <a href="/" style="font-size:0.85rem; color:#64748b; text-decoration:none;">← Return to Customer Storefront</a>
+    </div>
+
+    <div style="margin-top:1rem; font-size:0.75rem; color:#94a3b8; text-align:center; background:#f8fafc; padding:0.5rem; border-radius:6px;">
+      🔒 <strong>Strict RBAC Protected:</strong> Only verified store owners can access order processing, inventory controls, and payment verification.
+    </div>
+  </div>
+
+  <script>
+    async function handleOwnerLogin(event) {
+      event.preventDefault();
+      const username = document.getElementById('owner-username').value.trim();
+      const password = document.getElementById('owner-password').value.trim();
+      const errorBox = document.getElementById('login-error-msg');
+      const submitBtn = document.getElementById('owner-login-btn');
+
+      errorBox.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying Credentials...';
+
+      try {
+        const res = await fetch('/api/owner/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          errorBox.textContent = data.error || 'Invalid credentials.';
+          errorBox.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = '🔐 Authenticate as Store Owner';
+          return;
+        }
+
+        // Redirect to owner dashboard
+        window.location.href = '/owner/dashboard';
+      } catch (err) {
+        errorBox.textContent = 'Network error. Please try again.';
+        errorBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🔐 Authenticate as Store Owner';
+      }
+    }
+  </script>
+</body>
+</html>

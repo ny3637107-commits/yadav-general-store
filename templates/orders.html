@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders | Yadav General Store</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand">
+        <span class="brand-icon">🛒</span>
+        <div>
+          <div class="brand-title" data-i18n="storeName">Yadav General Store</div>
+          <div class="brand-sub" data-i18n="storeTagline">Fresh Groceries & Daily Needs</div>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <div class="lang-switcher">
+          <button id="lang-en-btn" class="lang-btn active-lang" onclick="setLanguage('en')">EN</button>
+          <button id="lang-hi-btn" class="lang-btn" onclick="setLanguage('hi')">हिन्दी</button>
+        </div>
+
+        <!-- Notification Bell -->
+        <button id="notif-bell-btn" class="notif-bell-btn" onclick="toggleNotifDrawer()" title="Notifications">
+          🔔
+          <span id="notif-badge" class="notif-badge" style="display:none;">0</span>
+        </button>
+
+        <a href="/" class="nav-link">← <span data-i18n="navHome">Back to Store</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero-banner" style="padding:1.25rem 1rem;">
+    <h1 data-i18n="navOrders">My Orders</h1>
+    <p style="font-size:0.85rem; opacity:0.9;">Real-time tracking for your grocery deliveries and in-store pickups</p>
+  </header>
+
+  <main class="container" style="max-width:800px; margin: 1.5rem auto;">
+    <div id="orders-container">
+      <!-- Populated via orders.js -->
+    </div>
+  </main>
+
+  <!-- Notification Drawer / Modal -->
+  <div class="modal-overlay" id="notif-drawer-modal" style="display:none;" onclick="if(event.target===this) toggleNotifDrawer(false)">
+    <div class="modal-content" style="max-width:440px; max-height:85vh; display:flex; flex-direction:column;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="display:flex; align-items:center; gap:0.5rem; font-size:1.15rem;">
+          <span>🔔</span>
+          <span data-i18n="notificationsTitle">Notifications</span>
+        </h2>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <button id="mark-all-read-btn" class="nav-link" style="font-size:0.75rem; padding:0.25rem 0.5rem; background:#f1f5f9; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer;" onclick="markNotificationsAsRead()" data-i18n="markAllRead">Mark All Read</button>
+          <button class="close-btn" onclick="toggleNotifDrawer(false)">&times;</button>
+        </div>
+      </div>
+      <div id="notif-list-container" style="display:flex; flex-direction:column; gap:0.5rem; padding:0.5rem 0; overflow-y:auto; max-height:60vh;">
+        <p style="color:#64748b; font-size:0.9rem; text-align:center; padding:2rem 0;" data-i18n="noNotifications">No notifications yet</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/orders.js"></script>
+</body>
+</html>

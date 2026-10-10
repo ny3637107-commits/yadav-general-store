@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Owner Dashboard | Yadav General Store</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>">
+</head>
+<body class="owner-body">
+
+  <!-- Owner Top Navigation -->
+  <header class="owner-header">
+    <div class="owner-brand">
+      <span>🏪</span>
+      <span>Yadav General Store</span>
+      <span class="owner-badge">Owner Admin</span>
+    </div>
+
+    <div class="owner-nav-actions">
+      <a href="/" target="_blank" class="nav-link" style="color:#94a3b8; font-size:0.85rem;">
+        👁️ View Storefront ↗
+      </a>
+      <button onclick="handleOwnerLogout()" class="owner-logout-btn">
+        🚪 Sign Out
+      </button>
+    </div>
+  </header>
+
+  <main class="owner-container">
+    <!-- Quick Performance Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-title">Total Orders</div>
+        <div class="stat-card-val" id="stat-total-orders">0</div>
+      </div>
+      <div class="stat-card" style="border-left: 4px solid #f59e0b;">
+        <div class="stat-card-title" style="color:#b45309;">Pending Approval</div>
+        <div class="stat-card-val" id="stat-pending-orders" style="color:#b45309;">0</div>
+      </div>
+      <div class="stat-card" style="border-left: 4px solid #a855f7;">
+        <div class="stat-card-title" style="color:#7e22ce;">UPI Proofs to Verify</div>
+        <div class="stat-card-val" id="stat-payment-pending" style="color:#7e22ce;">0</div>
+      </div>
+      <div class="stat-card" style="border-left: 4px solid #16a34a;">
+        <div class="stat-card-title" style="color:#15803d;">Total Revenue</div>
+        <div class="stat-card-val" id="stat-revenue" style="color:#15803d;">₹0</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="dashboard-tabs">
+      <button class="d-tab active" id="tab-btn-orders" onclick="switchTab('orders')">
+        📦 Orders & Fulfillment
+      </button>
+      <button class="d-tab" id="tab-btn-products" onclick="switchTab('products')">
+        🏷️ Product Inventory
+      </button>
+      <button class="d-tab" id="tab-btn-settings" onclick="switchTab('settings')">
+        ⚙️ Store & UPI Settings
+      </button>
+    </div>
+
+    <!-- PANEL 1: ORDERS MANAGEMENT -->
+    <section id="panel-orders" class="tab-content-panel">
+      <!-- Status Filter Buttons -->
+      <div class="orders-filter-bar">
+        <button class="filter-btn active" onclick="filterOrdersByStatus('ALL', this)">All Orders</button>
+        <button class="filter-btn" onclick="filterOrdersByStatus('PENDING_OWNER_APPROVAL', this)">⏳ Pending Approval</button>
+        <button class="filter-btn" onclick="filterOrdersByStatus('ACCEPTED', this)">✅ Accepted</button>
+        <button class="filter-btn" onclick="filterOrdersByStatus('PAYMENT_PENDING', this)">💳 UPI Proof Uploaded</button>
+        <button class="filter-btn" onclick="filterOrdersByStatus('PROCESSING', this)">📦 Processing / Packing</button>
+        <button class="filter-btn" onclick="filterOrdersByStatus('COMPLETED', this)">🎉 Completed</button>
+        <button class="filter-btn" onclick="filterOrdersByStatus('REJECTED', this)">❌ Rejected</button>
+      </div>
+
+      <div id="admin-orders-container">
+        <!-- Rendered via owner.js -->
+      </div>
+    </section>
+
+    <!-- PANEL 2: PRODUCT CATALOG -->
+    <section id="panel-products" class="tab-content-panel" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h2 style="font-size:1.2rem; font-weight:800;">Grocery Items & Inventory</h2>
+        <button class="admin-btn admin-btn-success" onclick="openAddProductModal()">
+          ➕ Add New Grocery Product
+        </button>
+      </div>
+
+      <table class="product-admin-table">
+        <thead>
+          <tr>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>Base Price</th>
+            <th>Current Stock</th>
+            <th>Pack Variants</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="admin-products-tbody">
+          <!-- Rendered via owner.js -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- PANEL 3: STORE SETTINGS -->
+    <section id="panel-settings" class="tab-content-panel" style="display:none;">
+      <div class="settings-card">
+        <h2 style="font-size:1.2rem; font-weight:800; margin-bottom:1rem;">Store Configuration</h2>
+
+        <form onsubmit="saveOwnerSettings(event)">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+            <div class="form-group">
+              <label class="form-label">Delivery Charge (₹)</label>
+              <input type="number" id="setting-delivery-charge" class="form-input" step="1" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Minimum Order Amount (₹)</label>
+              <input type="number" id="setting-min-order" class="form-input" step="1" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Free Delivery Threshold (₹)</label>
+            <input type="number" id="setting-free-thresh" class="form-input" step="1" required />
+            <small style="color:#64748b;">Orders above this amount receive 100% free delivery.</small>
+          </div>
+
+          <div style="display:flex; gap:1.5rem; margin-bottom:1.25rem;">
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:600;">
+              <input type="checkbox" id="setting-enable-home" />
+              <span>Enable Home Delivery</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:600;">
+              <input type="checkbox" id="setting-enable-pickup" />
+              <span>Enable Store Pickup</span>
+            </label>
+          </div>
+
+          <hr style="border:none; border-top:1px solid #e2e8f0; margin:1.25rem 0;" />
+
+          <h3 style="font-size:1rem; font-weight:800; margin-bottom:0.75rem; color:#0284c7;">
+            📱 Online UPI Payment Settings
+          </h3>
+
+          <div class="form-group">
+            <label class="form-label">Store UPI ID (VPA)</label>
+            <input type="text" id="setting-upi-id" class="form-input" required placeholder="e.g. yadavstore@oksbi" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Store UPI QR Code Image (Direct Upload)</label>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <input type="file" id="setting-upi-qr-file" accept="image/png, image/jpeg, image/webp, image/gif" class="form-input" onchange="handleQrCodeUpload(event)" style="flex:1;" />
+              <input type="hidden" id="setting-upi-qr-url" />
+            </div>
+            <div id="qr-preview-container" style="margin-top:0.5rem; display:none;">
+              <img id="qr-preview-img" src="" alt="UPI QR Code Preview" style="max-height:120px; border:1px solid #cbd5e1; border-radius:6px; padding:4px;" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Payment Instructions (English)</label>
+            <textarea id="setting-upi-instructions-en" class="form-textarea" rows="2"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Payment Instructions (Hindi)</label>
+            <textarea id="setting-upi-instructions-hi" class="form-textarea" rows="2"></textarea>
+          </div>
+
+          <button type="submit" class="admin-btn admin-btn-primary" style="padding:0.75rem 1.5rem; font-size:1rem;">
+            💾 Save Settings
+          </button>
+        </form>
+      </div>
+
+      <!-- Security & Password Change Card -->
+      <div class="settings-card" style="margin-top: 1.5rem;">
+        <h2 style="font-size:1.2rem; font-weight:800; margin-bottom:0.5rem; color:#dc2626;">🔐 Security & Master Password</h2>
+        <p style="font-size:0.85rem; color:#64748b; margin-bottom:1rem;">Update store owner credentials. Requires existing master password.</p>
+
+        <form onsubmit="handleOwnerPasswordChange(event)">
+          <div class="form-group">
+            <label class="form-label">Current Password</label>
+            <input type="password" id="owner-curr-password" class="form-input" required placeholder="Enter current owner password" />
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input type="password" id="owner-new-password" class="form-input" required minlength="8" placeholder="At least 8 chars, 1 digit, 1 special char" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" id="owner-confirm-password" class="form-input" required minlength="8" placeholder="Confirm new password" />
+            </div>
+          </div>
+          <button type="submit" class="admin-btn admin-btn-danger" style="padding:0.75rem 1.5rem; font-size:0.95rem;">
+            🔒 Update Master Password
+          </button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL: ADD / EDIT PRODUCT -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal-content" style="max-width:650px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="product-modal-title">Add / Edit Grocery Product</h2>
+        <button class="close-btn" onclick="closeProductModal()">&times;</button>
+      </div>
+
+      <form onsubmit="saveProduct(event)">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Product Name (English)</label>
+            <input type="text" id="prod-form-name-en" class="form-input" required placeholder="e.g. Basmati Rice" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Product Name (Hindi)</label>
+            <input type="text" id="prod-form-name-hi" class="form-input" required placeholder="e.g. बासमती चावल" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="prod-form-cat" class="form-select">
+              <option value="Atta, Rice & Dals">Atta, Rice & Dals</option>
+              <option value="Spices & Masalas">Spices & Masalas</option>
+              <option value="Oils & Ghee">Oils & Ghee</option>
+              <option value="Dairy & Bakery">Dairy & Bakery</option>
+              <option value="Snacks & Biscuits">Snacks & Biscuits</option>
+              <option value="Beverages & Tea">Beverages & Tea</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Base Unit</label>
+            <select id="prod-form-unit" class="form-select">
+              <option value="kg">kg (Kilogram)</option>
+              <option value="packet">packet</option>
+              <option value="piece">piece</option>
+              <option value="litre">litre</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Base Price (₹ per base unit)</label>
+            <input type="number" id="prod-form-price" class="form-input" step="0.5" required placeholder="e.g. 100" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stock Quantity (in base units)</label>
+            <input type="number" id="prod-form-stock" class="form-input" step="0.1" required placeholder="e.g. 50" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Product Image (Upload File or Enter URL)</label>
+          <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.4rem;">
+            <input type="file" id="prod-form-file" accept="image/png, image/jpeg, image/webp, image/gif" class="form-input" onchange="handleProductImageUpload(event)" style="flex:1;" />
+          </div>
+          <input type="text" id="prod-form-img" class="form-input" placeholder="/static/images/rice.svg or /uploads/..." />
+          <div id="prod-img-preview-container" style="margin-top:0.4rem; display:none;">
+            <img id="prod-img-preview" src="" alt="Product Preview" style="max-height:80px; border:1px solid #cbd5e1; border-radius:6px; padding:2px;" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Description (English)</label>
+            <textarea id="prod-form-desc-en" class="form-textarea" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description (Hindi)</label>
+            <textarea id="prod-form-desc-hi" class="form-textarea" rows="2"></textarea>
+          </div>
+        </div>
+
+        <!-- Dynamic Units Variants -->
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+            <label class="form-label" style="margin:0;">Pack / Weight Variants & Multipliers</label>
+            <button type="button" class="admin-btn admin-btn-outline" style="font-size:0.75rem; padding:0.2rem 0.5rem;" onclick="addUnitRow()">
+              + Add Variant
+            </button>
+          </div>
+          <div id="prod-units-container">
+            <!-- Populated via owner.js -->
+          </div>
+        </div>
+
+        <button type="submit" class="submit-order-btn" style="background:#0284c7;">
+          Save Product
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: QUICK RESTOCK -->
+  <div class="modal-overlay" id="restock-modal">
+    <div class="modal-content" style="max-width:400px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Quick Restock Product</h2>
+        <button class="close-btn" onclick="closeRestockModal()">&times;</button>
+      </div>
+      <div>
+        <p id="restock-prod-name" style="font-weight:700; color:#0f172a; margin-bottom:1rem;"></p>
+        <div class="form-group">
+          <label class="form-label">Additional Quantity to Add</label>
+          <input type="number" id="restock-qty" class="form-input" step="0.5" placeholder="e.g. 25" autofocus />
+        </div>
+        <button type="button" class="submit-order-btn" style="background:#16a34a;" onclick="submitRestock()">
+          ➕ Add to Inventory
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REJECT ORDER -->
+  <div class="modal-overlay" id="reject-modal">
+    <div class="modal-content" style="max-width:450px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Reject Customer Order</h2>
+        <button class="close-btn" onclick="closeRejectModal()">&times;</button>
+      </div>
+      <div>
+        <p style="font-size:0.85rem; color:#64748b; margin-bottom:0.75rem;">
+          Stock will remain untouched. Please specify why the order is being cancelled so the customer is notified.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Reason for Rejection</label>
+          <textarea id="reject-reason" class="form-textarea" rows="3" placeholder="e.g. Delivery address outside service area, or item temporarily unavailable..."></textarea>
+        </div>
+        <button type="button" class="submit-order-btn" style="background:#dc2626;" onclick="confirmRejectOrder()">
+          ❌ Confirm Order Rejection
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PAYMENT VERIFICATION -->
+  <div class="modal-overlay" id="payment-verify-modal">
+    <div class="modal-content" style="max-width:550px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Verify UPI Payment Screenshot</h2>
+        <button class="close-btn" onclick="closePaymentVerifyModal()">&times;</button>
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem; font-size:0.9rem;">
+          <div>Customer: <strong id="payment-verify-customer"></strong></div>
+          <div>Expected Amount: <strong id="payment-verify-amount" style="color:#15803d; font-size:1.1rem;"></strong></div>
+        </div>
+
+        <div style="background:#f1f5f9; border-radius:8px; padding:0.5rem; text-align:center; max-height:350px; overflow:hidden; margin-bottom:1rem; border:1px solid #cbd5e1;">
+          <img id="payment-verify-img" src="" alt="Payment Screenshot" style="max-width:100%; max-height:330px; object-fit:contain; border-radius:4px;" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Verification Notes / Rejection Reason (Optional)</label>
+          <input type="text" id="payment-verify-notes" class="form-input" placeholder="e.g. Transaction ID 123456 verified" />
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <button type="button" class="admin-btn admin-btn-success" style="padding:0.75rem;" onclick="handlePaymentDecision('APPROVE')">
+            ✅ Approve Payment
+          </button>
+          <button type="button" class="admin-btn admin-btn-danger" style="padding:0.75rem;" onclick="handlePaymentDecision('REJECT')">
+            ❌ Reject Screenshot
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/static/js/owner.js"></script>
+</body>
+</html>

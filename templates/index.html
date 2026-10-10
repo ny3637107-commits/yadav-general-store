@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yadav General Store | यादव जनरल स्टोर</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand">
+        <span class="brand-icon">🛒</span>
+        <div>
+          <div class="brand-title" data-i18n="storeName">Yadav General Store</div>
+          <div class="brand-sub" data-i18n="storeTagline">Fresh Groceries & Daily Needs</div>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <!-- Language Switcher -->
+        <div class="lang-switcher">
+          <button id="lang-en-btn" class="lang-btn active-lang" onclick="setLanguage('en')">EN</button>
+          <button id="lang-hi-btn" class="lang-btn" onclick="setLanguage('hi')">हिन्दी</button>
+        </div>
+
+        <a href="/my-orders" class="nav-link" data-i18n="navOrders">My Orders</a>
+        
+        <!-- Notification Bell -->
+        <button id="notif-bell-btn" class="notif-bell-btn" onclick="toggleNotifDrawer()" title="Notifications">
+          🔔
+          <span id="notif-badge" class="notif-badge" style="display:none;">0</span>
+        </button>
+
+        <div id="nav-auth-container" style="display:flex; align-items:center; gap:0.5rem;">
+          <button onclick="openAuthModal('login')" class="nav-link" style="border:none; background:transparent; cursor:pointer;" data-i18n="navLogin">Login</button>
+        </div>
+
+        <button class="cart-btn" onclick="toggleCartModal(true)">
+          <span>🛒</span>
+          <span data-i18n="navCart">Cart</span>
+          <span id="cart-badge" class="cart-badge" style="display:none;">0</span>
+        </button>
+
+        <a href="/owner/login" class="nav-link" style="color:#0284c7; font-size:0.8rem; border:1px solid #e2e8f0;" data-i18n="navOwner">Owner</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Banner -->
+  <header class="hero-banner">
+    <h1 data-i18n="storeName">Yadav General Store</h1>
+    <p data-i18n="storeTagline">Fresh Groceries & Daily Needs Delivered to Your Doorstep</p>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+    <!-- Search Bar -->
+    <div class="search-box">
+      <input type="text" id="search-input" class="search-input" placeholder="Search groceries (Atta, Rice, Dal, Spices, Oil...)" data-i18n-placeholder="searchPlaceholder" />
+    </div>
+
+    <!-- Category Pills -->
+    <div class="categories-bar" id="categories-bar">
+      <button class="cat-pill active" onclick="filterCategory('all', this)" data-i18n="allCategories">All Items</button>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid" id="products-grid">
+      <!-- Dynamically populated via app.js -->
+    </div>
+  </main>
+
+  <!-- Cart Modal -->
+  <div class="modal-overlay" id="cart-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" data-i18n="cartTitle">Your Shopping Cart</h2>
+        <button class="close-btn" onclick="toggleCartModal(false)">&times;</button>
+      </div>
+
+      <div id="free-delivery-banner" style="display:none; background:#fef3c7; color:#b45309; padding:0.5rem; border-radius:6px; font-size:0.85rem; font-weight:700; margin-bottom:0.75rem; text-align:center;"></div>
+
+      <div id="cart-items-container">
+        <!-- Cart Items populated via JS -->
+      </div>
+
+      <div style="margin-top:1rem; border-top:1px solid #e2e8f0; padding-top:0.75rem;">
+        <div class="bill-row">
+          <span data-i18n="subtotal">Subtotal</span>
+          <span id="cart-subtotal">₹0</span>
+        </div>
+        <div class="bill-row">
+          <span data-i18n="deliveryFee">Delivery Fee</span>
+          <span id="cart-delivery-fee">₹0</span>
+        </div>
+        <div class="bill-row bill-total">
+          <span data-i18n="totalAmount">Total Payable</span>
+          <span id="cart-grand-total">₹0</span>
+        </div>
+        
+        <button id="cart-checkout-btn" class="submit-order-btn" onclick="openCheckoutModal()" data-i18n="proceedCheckout">
+          Proceed to Checkout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div class="modal-overlay" id="checkout-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" data-i18n="checkoutTitle">Complete Your Order</h2>
+        <button class="close-btn" onclick="closeCheckoutModal()">&times;</button>
+      </div>
+
+      <form onsubmit="submitOrder(event)">
+        <!-- Delivery Mode -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="deliveryMode">Delivery Mode</label>
+          <div class="radio-group">
+            <div class="radio-card delivery-type-card active" id="delivery-type-HOME_DELIVERY" onclick="setDeliveryType('HOME_DELIVERY')">
+              🚚 <span data-i18n="homeDelivery">Home Delivery</span>
+            </div>
+            <div class="radio-card delivery-type-card" id="delivery-type-STORE_PICKUP" onclick="setDeliveryType('STORE_PICKUP')">
+              🏬 <span data-i18n="storePickup">Store Pickup</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Name -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="fullName">Full Name</label>
+          <input type="text" id="order-name" class="form-input" required placeholder="e.g. Rahul Sharma" />
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="phone">Mobile Number</label>
+          <input type="tel" id="order-phone" class="form-input" required placeholder="e.g. 9876543210" />
+        </div>
+
+        <!-- Delivery Address -->
+        <div class="form-group" id="address-group">
+          <label class="form-label" data-i18n="address">Delivery Address</label>
+          <textarea id="order-address" class="form-textarea" rows="2" placeholder="House/Flat No., Street, Landmark..." data-i18n-placeholder="addressPlaceholder"></textarea>
+        </div>
+
+        <!-- Special Instructions -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="specialInstructions">Special Instructions (Optional)</label>
+          <input type="text" id="order-instructions" class="form-input" placeholder="e.g., Deliver before 6 PM..." data-i18n-placeholder="instructionsPlaceholder" />
+        </div>
+
+        <!-- Payment Method -->
+        <div class="form-group">
+          <label class="form-label" data-i18n="paymentMethod">Payment Method</label>
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; cursor:pointer;">
+              <input type="radio" name="payment_method" value="ONLINE_UPI" checked />
+              <span data-i18n="onlineUpi">Online UPI (GPay / PhonePe / Paytm)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; cursor:pointer;">
+              <input type="radio" name="payment_method" value="COD" />
+              <span id="label-cod-method" data-i18n="cod">Cash on Delivery (COD)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Order Summary Box -->
+        <div id="checkout-summary-box" style="background:#f8fafc; padding:0.75rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:1rem;"></div>
+
+        <button type="submit" id="place-order-submit-btn" class="submit-order-btn" data-i18n="placeOrderBtn">
+          Confirm & Place Order
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Customer Login / Register Modal -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="auth-modal-title">Customer Login</h2>
+        <button class="close-btn" onclick="closeAuthModal()">&times;</button>
+      </div>
+
+      <form onsubmit="handleAuthSubmit(event)">
+        <div class="form-group" id="auth-name-group" style="display:none;">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="auth-name" class="form-input" placeholder="Your full name" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Username or Phone</label>
+          <input type="text" id="auth-username" class="form-input" required placeholder="e.g. rahul98 or 9876543210" />
+        </div>
+
+        <div class="form-group" id="auth-phone-group" style="display:none;">
+          <label class="form-label">Mobile Phone</label>
+          <input type="tel" id="auth-phone" class="form-input" placeholder="10-digit mobile number" />
+        </div>
+
+        <div class="form-group" id="auth-address-group" style="display:none;">
+          <label class="form-label">Delivery Address</label>
+          <textarea id="auth-address" class="form-textarea" rows="2" placeholder="Full delivery address"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="auth-password" class="form-input" required placeholder="Enter password" />
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="submit-order-btn">Login</button>
+      </form>
+
+      <div id="auth-switch-text" style="text-align:center; margin-top:1rem; font-size:0.85rem; color:#64748b;"></div>
+    </div>
+  </div>
+
+  <!-- Notification Drawer / Modal -->
+  <div class="modal-overlay" id="notif-drawer-modal" style="display:none;" onclick="if(event.target===this) toggleNotifDrawer(false)">
+    <div class="modal-content" style="max-width:440px; max-height:85vh; display:flex; flex-direction:column;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="display:flex; align-items:center; gap:0.5rem; font-size:1.15rem;">
+          <span>🔔</span>
+          <span data-i18n="notificationsTitle">Notifications</span>
+        </h2>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <button id="mark-all-read-btn" class="nav-link" style="font-size:0.75rem; padding:0.25rem 0.5rem; background:#f1f5f9; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer;" onclick="markNotificationsAsRead()" data-i18n="markAllRead">Mark All Read</button>
+          <button class="close-btn" onclick="toggleNotifDrawer(false)">&times;</button>
+        </div>
+      </div>
+      <div id="notif-list-container" style="display:flex; flex-direction:column; gap:0.5rem; padding:0.5rem 0; overflow-y:auto; max-height:60vh;">
+        <p style="color:#64748b; font-size:0.9rem; text-align:center; padding:2rem 0;" data-i18n="noNotifications">No notifications yet</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Box -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Scripts -->
+  <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
